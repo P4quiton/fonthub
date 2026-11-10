@@ -1,0 +1,22 @@
+:root {
+  /* Paleta de FontHub */
+  --fh-yellow: #facc15;
+  --fh-blue: #2563eb;
+  --fh-coral: #f87171;
+  --fh-cream: #faf7ef;
+  --fh-black: #171717;
+  --fh-white: #ffffff;
+
+  /* Bordes y sombras estilo cómic */
+  --fh-border: 3px solid var(--fh-black);
+  --fh-shadow: 5px 5px 0 var(--fh-black);
+  --fh-shadow-hover: 2px 2px 0 var(--fh-black);
+
+  /* Esquinas */
+  --fh-radius: 8px;
+}
+
+body {
+  background-color: var(--fh-cream);
+  color: var(--fh-black);
+}
