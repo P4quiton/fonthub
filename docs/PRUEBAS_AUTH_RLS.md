@@ -1,123 +1,72 @@
+# FontHub — Registro de pruebas de autenticación y seguridad
 
-# FontHub — Pruebas de autenticación y seguridad RLS
+**Alcance:** Supabase Auth, Google OAuth, `public.profiles`, RLS y Edge Function `profiles-api`. Las pruebas descritas son funcionales y de autorización básicas; no constituyen una auditoría completa de seguridad.
 
-## 1. Objetivo
+## 1. Escenarios comprobados
 
-Verificar el funcionamiento de Supabase Auth, la autenticación mediante Google y las políticas de seguridad RLS aplicadas a la tabla `public.profiles`.
-
-## 2. Tecnologías utilizadas
-
-- React + Vite
-- Supabase Auth
-- Google OAuth
-- Supabase PostgreSQL
-- Row Level Security (RLS)
-- Supabase JavaScript Client
-
-## 3. Pruebas realizadas
-
-| ID | Prueba | Resultado |
+| ID | Prueba | Resultado observado |
 |---|---|---|
-| AUTH-01 | Iniciar sesión mediante Google | Correcto |
-| AUTH-02 | Iniciar sesión con dos cuentas diferentes | Correcto |
-| AUTH-03 | Asignar un UUID diferente a cada cuenta | Correcto |
-| AUTH-04 | Crear automáticamente perfiles mediante un trigger | Correcto |
-| AUTH-05 | Asignar el rol inicial `user` | Correcto |
-| SEC-01 | Consultar perfiles desde dos sesiones distintas | Cada usuario visualizó únicamente su perfil |
-| SEC-02 | Intentar cambiar el rol propio a `admin` | Operación rechazada |
-| SEC-03 | Intentar modificar un perfil ajeno | Ninguna fila modificada |
-| SEC-04 | Verificar los perfiles después de las pruebas | Datos y roles originales conservados |
+| AUTH-01 | Iniciar sesión mediante Google | Satisfactorio |
+| AUTH-02 | Utilizar dos cuentas distintas | Cada cuenta obtuvo su propio UUID |
+| AUTH-03 | Crear perfil al registrarse | Trigger creó un registro en `public.profiles` |
+| AUTH-04 | Asignar rol inicial | Rol `user` |
+| AUTH-05 | Recargar la página o reiniciar Vite con sesión activa | Sesión persistente |
+| AUTH-06 | Acceder desde el despliegue de Vercel | Google OAuth y persistencia tras recarga satisfactorios |
+| SEC-01 | Consultar perfiles con dos sesiones | Cada usuario visualizó su perfil |
+| SEC-02 | Intentar cambiar `role` a `admin` | Operación rechazada |
+| SEC-03 | Intentar modificar el perfil de otra cuenta | Ninguna fila ajena modificada |
+| SEC-04 | Comprobar los datos después de las pruebas | Roles y nombres ajenos conservados |
+| API-01 | Invocar `profiles-api` desde React con sesión | Perfil devuelto y mostrado en la interfaz |
+| API-02 | GET a `profiles-api` sin encabezado Authorization | HTTP 401, sin datos del perfil |
 
-## 4. Configuración de seguridad
+## 2. Configuración que se probó
 
-La tabla `public.profiles` cuenta con políticas RLS para restringir la consulta y modificación de perfiles.
+`public.profiles` utiliza un UUID relacionado con `auth.users`, controles RLS y permisos limitados para lectura y actualización autorizada del nombre. El trigger `on_auth_user_created` ejecuta `public.handle_new_user()` para crear un perfil con rol inicial `user`.
 
-Se utilizan permisos de columnas para impedir que los usuarios normales actualicen directamente el campo `role`.
+Archivos correspondientes:
 
-La creación de perfiles se realiza mediante la función `public.handle_new_user()` y el trigger `on_auth_user_created`.
+- `supabase/migrations/20261113_001_create_profiles.sql`
+- `supabase/migrations/20261113_002_auto_create_profiles.sql`
+- `supabase/functions/profiles-api/index.ts`
+- `frontend/src/services/profilesService.js`
 
-## 5. Resultados
+## 3. Consulta autenticada a profiles-api
 
-Las pruebas realizadas confirmaron que:
+**Procedimiento:** iniciar sesión con Google, invocar `getMyProfile()` desde React y observar la respuesta de la función en DevTools → Network.
 
-- Los usuarios pueden autenticarse mediante Google.
-- Cada cuenta tiene un identificador UUID propio.
-- Los perfiles nuevos se crean automáticamente.
-- Los usuarios autenticados solo visualizan su propio perfil.
-- Los usuarios normales no pueden asignarse privilegios administrativos.
-- No fue posible modificar los datos de otro usuario durante las pruebas.
+**Resultado:** la respuesta contenía `profile.id`, `profile.name`, `profile.role` y `profile.created_at`. En el ejemplo probado, `role` era `user` y `name` estaba vacío (`""`), por lo que la interfaz mostró «Sin nombre». La respuesta se procesó correctamente.
 
-## 6. Pruebas pendientes
+**Evidencia recomendada:** captura de la solicitud y pestaña Response de DevTools, ocultando encabezados con credenciales, tokens e identificadores personales que no sean necesarios para la entrega.
 
-- Modificación autorizada del nombre del perfil propio.
-- Verificación de permisos de moderadores y administradores.
-- Seguridad de proyectos tipográficos privados.
-- Autorización de las Edge Functions.
-- Control de acceso a archivos de Supabase Storage.
-- Pruebas de cierre, expiración y renovación de sesiones.
+## 4. Rechazo de solicitud sin autenticación
 
-## 7. Conclusión
+**Procedimiento:** enviar un GET a la URL pública de `profiles-api` sin encabezado `Authorization` y consultar la respuesta.
 
-La autenticación con Google y las restricciones de acceso a perfiles funcionaron correctamente en los escenarios evaluados.
+**Resultado observado:**
 
-Estas pruebas no constituyen una auditoría completa de seguridad. Las políticas y permisos deberán seguir verificándose conforme se incorporen nuevas funcionalidades.
+```text
+HTTP: 401 Unauthorized
+code: UNAUTHORIZED_NO_AUTH_HEADER
+message: Missing authorization header
+```
 
+No se devolvió ningún objeto `profile`. Esta prueba confirma el rechazo de esa solicitud sin encabezado, **no** demuestra por sí sola la validez de todos los escenarios posibles de autorización.
 
-## Prueba de integración de profiles-api
+**Evidencia recomendada:** captura de Console/Network mostrando el estado 401 y el mensaje; no incluir tokens.
 
-Se realizó una prueba de integración entre el frontend React y
-la Edge Function `profiles-api` de Supabase.
+## 5. Pruebas aún pendientes
 
-### Procedimiento
+- Verificar la modificación permitida del `name` propio.
+- Verificar explícitamente JWT inválido y JWT válido de otro usuario en `profiles-api`.
+- Probar permisos específicos de `moderator` y `admin` cuando se implemente su funcionalidad.
+- Validar cambios y recuperación de sesión y manejo de errores de autenticación.
+- Verificar el retorno a una ruta privada (por ejemplo `/editor`) tras OAuth, sin confundir navegación con autorización de datos.
+- Repetir las pruebas del servicio de perfiles en el frontend desplegado cuando se integre la nueva navegación.
+- Implementar y probar RLS de proyectos tipográficos, acceso a Storage y límites de archivo.
+- Validar controles de compras, licencias y descargas antes de ponerlos en operación.
 
-1. Iniciar sesión mediante Google OAuth.
-2. Ejecutar la función `getMyProfile()` desde React.
-3. Enviar una petición GET mediante `supabase.functions.invoke()`.
-4. Revisar la respuesta desde DevTools, en Network.
-5. Mostrar el nombre y el rol del usuario en la interfaz.
+## 6. Conclusión
 
-### Resultado
+Los escenarios observados respaldan que Google OAuth funciona, que los usuarios probados tienen perfiles separados y que las políticas evaluadas impiden modificaciones indebidas. La Edge Function respondió a la sesión autenticada y rechazó una solicitud sin `Authorization` con HTTP 401.
 
-La API devolvió correctamente un objeto `profile` con los campos:
-
-- `id`
-- `name`
-- `role`
-- `created_at`
-
-El usuario autenticado tenía el rol `user`.
-
-El campo `name` estaba vacío, por lo que la interfaz mostró
-el texto "Sin nombre".
-
-La respuesta fue procesada correctamente por React y la
-información se presentó en la interfaz.
-
-### Estado
-
-Prueba de integración autenticada: satisfactoria.
-
-Pendiente: comprobar explícitamente el rechazo de solicitudes
-sin autenticación y realizar las pruebas en producción.
-
-### Evidencia
-
-[Insertar captura de la petición y su respuesta en DevTools]
-
-## Prueba de acceso no autenticado a profiles-api
-
-Se realizó una solicitud GET a la Edge Function `profiles-api`
-sin enviar un encabezado Authorization.
-
-### Resultado
-
-- Código HTTP: 401 Unauthorized.
-- Código de error: UNAUTHORIZED_NO_AUTH_HEADER.
-- Mensaje: Missing authorization header.
-- No se devolvió información del perfil.
-
-### Conclusión
-
-La API rechaza solicitudes sin credenciales de autenticación.
-
-La prueba fue satisfactoria.
+Las pruebas futuras deberán documentarse con fecha, resultado y evidencia, distinguiendo lo comprobado de lo pendiente.

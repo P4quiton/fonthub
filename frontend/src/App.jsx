@@ -1,12 +1,17 @@
-import { getMyProfile } from './services/profilesService'
 
 import { useEffect, useState } from 'react'
-import Button from './components/ui/Button'
-import Card from './components/ui/Card'
+import { Route, Routes } from 'react-router'
+
+import Header from './components/layout/Header'
+import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import PlaceholderPage from './pages/PlaceholderPage'
+import ProtectedRoute from './routes/ProtectedRoute'
+
 import {
+  getCurrentUser,
   signInWithGoogle,
   signOut,
-  getCurrentUser,
 } from './features/auth/authService'
 import { supabase } from './services/supabaseClient'
 
@@ -14,10 +19,6 @@ function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  //Prueba
-  const [profile, setProfile] = useState(null)
-  const [profileLoading, setProfileLoading] = useState(false)
-  //Prueba
 
   useEffect(() => {
     let active = true
@@ -25,23 +26,31 @@ function App() {
     async function loadUser() {
       try {
         const currentUser = await getCurrentUser()
-        if (active) setUser(currentUser)
+
+        if (active) {
+          setUser(currentUser)
+        }
       } catch (err) {
-        if (active) setError(err.message)
+        if (active) {
+          setError(err.message)
+        }
       } finally {
-        if (active) setLoading(false)
+        if (active) {
+          setLoading(false)
+        }
       }
     }
 
     loadUser()
 
-    const { data: { subscription } } =
-      supabase.auth.onAuthStateChange((_event, session) => {
-        if (active) {
-          setUser(session?.user ?? null)
-          setLoading(false)
-        }
-      })
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active) {
+        setUser(session?.user ?? null)
+        setLoading(false)
+      }
+    })
 
     return () => {
       active = false
@@ -49,17 +58,16 @@ function App() {
     }
   }, [])
 
-  async function handleGoogleLogin() {
+  async function handleGoogleLogin(destination = '/') {
     try {
       setError('')
-      await signInWithGoogle()
+      await signInWithGoogle(destination)
     } catch (err) {
       setError(err.message)
     }
   }
 
   async function handleLogout() {
-    setProfile(null)
     try {
       setError('')
       await signOut()
@@ -69,188 +77,110 @@ function App() {
     }
   }
 
-  //Prueba
-  async function handleGetProfile() {
-  try {
-    setError('')
-    setProfile(null)
-    setProfileLoading(true)
-
-    const result = await getMyProfile()
-    setProfile(result)
-  } catch (err) {
-    console.error('Error en profiles-api:', err)
-    setError('No se pudo consultar el perfil mediante la API')
-  } finally {
-    setProfileLoading(false)
-  }
-}
-  //Prueba
-
   return (
-    <main className="flex min-h-screen items-center justify-center px-5 py-12">
-      <div className="w-full max-w-lg">
-        <Card className="text-center">
-          <h1 className="text-4xl font-black sm:text-5xl">
-            FontHub
-          </h1>
-
-          <p className="mt-3 font-medium">
-            Crea, comparte y descubre tipografías.
-          </p>
-
-          <div className="mt-8">
-            {loading ? (
-              <p>Comprobando sesión...</p>
-            ) : user ? (
-              <div className="space-y-5">
-                <p className="font-bold">
-                  ¡Sesión iniciada!
-                </p>
-
-                <p className="break-all text-sm">
-                  {user.email}
-                </p>
-
-                <Button
-                  variant="accent"
-                  className="w-full"
-                  onClick={handleLogout}
-                >
-                  Cerrar sesión
-                </Button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div className="mt-5 space-y-4">
-  <Button
-    className="w-full"
-    onClick={handleGetProfile}
-    disabled={profileLoading}
-  >
-    {profileLoading ? 'Consultando...' : 'Consultar mi perfil (API)'}
-  </Button>
-
-  {profile && (
-    <div className="rounded-lg border-2 border-black bg-yellow-100 p-4 text-left">
-      <p>
-        <strong>Nombre:</strong> {profile.name || 'Sin nombre'}
-      </p>
-      <p>
-        <strong>Rol:</strong> {profile.role}
-      </p>
-    </div>
-  )}
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-              </div>
-            ) : (
-              <Button
-                variant="secondary"
-                className="w-full"
-                onClick={handleGoogleLogin}
-              >
-                Continuar con Google
-              </Button>
-            )}
-          </div>
-
-          {error && (
-            <p
-              role="alert"
-              className="mt-5 text-sm font-bold text-red-700"
-            >
-              {error}
-            </p>
-          )}
-        </Card>
+    <div className="flex min-h-screen flex-col">
+      <Header user={user} onLogout={handleLogout} />
+
+      {error && (
+        <p
+          role="alert"
+          className="mx-auto mt-4 w-full max-w-5xl px-5 font-bold text-red-700"
+        >
+          {error}
+        </p>
+      )}
+
+      <div className="flex-1">
+        <Routes>
+          {/* Páginas públicas */}
+          <Route path="/" element={<HomePage />} />
+
+          <Route
+            path="/login"
+            element={
+              <LoginPage
+                user={user}
+                loading={loading}
+                onGoogleLogin={handleGoogleLogin}
+                error={error}
+              />
+            }
+          />
+
+          <Route
+            path="/catalogo"
+            element={
+              <PlaceholderPage
+                title="Explorar fuentes"
+                description="Aquí encontrarás el catálogo de tipografías de FontHub."
+              />
+            }
+          />
+
+          {/* Páginas que requieren autenticación */}
+          <Route
+            element={
+              <ProtectedRoute user={user} loading={loading} />
+            }
+          >
+            <Route
+              path="/editor"
+              element={
+                <PlaceholderPage
+                  title="Editor de fuentes"
+                  description="Aquí podrás diseñar tus propios glifos y crear tipografías."
+                />
+              }
+            />
+
+            <Route
+              path="/proyectos"
+              element={
+                <PlaceholderPage
+                  title="Mis proyectos"
+                  description="Aquí administrarás las fuentes que estés diseñando."
+                />
+              }
+            />
+
+            <Route
+              path="/perfil"
+              element={
+                <PlaceholderPage
+                  title="Mi perfil"
+                  description="Aquí podrás consultar y administrar tu información."
+                />
+              }
+            />
+
+            <Route
+              path="/compras"
+              element={
+                <PlaceholderPage
+                  title="Mis compras"
+                  description="Aquí encontrarás tus compras y licencias."
+                />
+              }
+            />
+          </Route>
+
+          {/* Rutas que no existen */}
+          <Route
+            path="*"
+            element={
+              <PlaceholderPage
+                title="Página no encontrada"
+                description="La dirección que buscas no existe en FontHub."
+              />
+            }
+          />
+        </Routes>
       </div>
-    </main>
+
+      <footer className="border-t-4 border-black bg-white px-5 py-5 text-center text-sm font-bold">
+        FontHub — Plataforma de creación y distribución de fuentes
+      </footer>
+    </div>
   )
 }
 
