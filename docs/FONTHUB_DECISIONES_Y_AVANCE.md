@@ -1,148 +1,167 @@
+# FontHub — Decisiones técnicas y estado de desarrollo
 
-# FontHub — Decisiones técnicas y bitácora de desarrollo
+**Actualizado:** 15 de noviembre de 2026.
+**Propósito:** referencia compartida del equipo. Distingue acuerdos, componentes implementados, pruebas realizadas y trabajo pendiente. No es una transcripción de comandos de desarrollo.
 
-> Documento compartible para el equipo. **Estado:** planificación técnica y preparación del entorno. **Última actualización:** 2026-11-10. No implica que las funcionalidades ya estén implementadas.
+## 1. Objetivo y alcance
 
-## 1. Propósito del proyecto
+FontHub busca permitir la creación, edición, guardado, publicación, exploración, descarga y comercialización de tipografías digitales. El alcance previsto abarca editor vectorial básico, proyectos privados, perfiles, catálogo, licencias, adquisiciones de prueba, descargas autorizadas y moderación.
 
-FontHub será una aplicación web para crear, editar, guardar, publicar, explorar, descargar y comercializar fuentes tipográficas digitales, con licencias que regulen usos personales/comerciales, modificación y redistribución. Incluirá un editor vectorial básico, gestor de proyectos, catálogo, perfiles, compras/ventas, moderación y una API documentada.
+### Funciones previstas para la primera entrega
 
-## 2. Acuerdos confirmados
+1. Identidad y perfiles con roles `user`, `moderator` y `admin`; visitantes sin sesión pueden acceder a secciones públicas.
+2. Editor de glifos vectoriales: contornos, nodos y curvas, métricas, espaciado y previsualización.
+3. Proyectos privados: crear, guardar, recuperar, modificar y eliminar.
+4. Exportación de una fuente tipográfica instalable; la factibilidad y el formato exacto **siguen pendientes de prueba de concepto**.
+5. Catálogo público, búsqueda, metadatos y publicación de fuentes con validación de archivos.
+6. Licencias y controles de descarga para fuentes gratuitas y adquiridas.
+7. Adquisiciones con proveedor de pagos en modo de pruebas, registros de compras y ventas.
+8. Moderación por reportes y notificaciones.
+9. Contratos de APIs y autorización de operaciones.
 
-- **Arquitectura basada en servicios:** el profesor acepta módulos funcionales que exponen operaciones mediante APIs; no exige microservicios ni despliegues independientes.
-- **Frontend:** React + Vite; estilos con Tailwind CSS.
-- **Backend:** Supabase Edge Functions en TypeScript/Deno; **no se usará Laravel** inicialmente.
-- **Identidad:** Supabase Auth; permisos y protección de datos mediante RLS y verificaciones de autorización en las funciones.
-- **Datos estructurados:** Supabase PostgreSQL.
-- **Archivos:** Supabase Storage, con protección para tipografías de pago y proyectos privados.
-- **Despliegue web previsto:** Vercel; Edge Functions y datos alojados en Supabase. No se necesita Railway en la arquitectura actual.
-- **Repositorio y colaboración:** Git + GitHub, usando ramas, commits y revisiones de cambios.
-- **API:** interfaces por dominio funcional y documentación OpenAPI.
-- **Editor tipográfico:** interacción de dibujo y modificación de glifos en el navegador; estudiar opentype.js para crear/exportar TTF antes de comprometer su implementación final.
+**Opcionales o posteriores:** generador CSS; importación y edición de fuentes existentes cuando las licencias lo permitan; comparación tipográfica y colaboración. No se incluyen inicialmente IA, fuentes variables ni editor profesional completo.
 
-## 3. Servicios lógicos propuestos
+## 2. Acuerdos técnicos
 
-| Módulo / Edge Function propuesta | Responsabilidad |
+| Tema | Decisión |
 |---|---|
-| Supabase Auth | Registro, inicio/cierre de sesión, recuperación de acceso e identidad |
-| `projects-api` | Proyectos tipográficos, borradores y guardado |
-| `fonts-api` | Publicación, edición de publicaciones, catálogo y metadatos |
-| `licenses-api` | Catálogo y condiciones de licencias |
-| `purchases-api` | Inicio y registro de adquisiciones |
-| `payments-webhook` | Confirmaciones autenticadas del proveedor de pagos |
-| `downloads-api` | Comprobar permisos y emitir enlaces temporales de descarga |
-| `moderation-api` | Reportes, suspensiones y restablecimientos |
-| `notifications-api` | Notificaciones a usuarios |
+| Arquitectura | Módulos funcionales con APIs; el docente no exige microservicios independientes |
+| Frontend | React + Vite + Tailwind CSS |
+| Rutas | React Router |
+| Diseño | Cómic/neobrutalista y responsive |
+| Backend | Supabase Edge Functions con TypeScript/Deno |
+| Datos | Supabase PostgreSQL |
+| Identidad | Supabase Auth con Google OAuth |
+| Seguridad | RLS, permisos limitados por rol y validaciones de servidor |
+| Archivos | Supabase Storage, a implementar para recursos tipográficos |
+| Despliegue | Frontend en Vercel, servicios en Supabase |
+| Documentación de APIs | OpenAPI prevista |
+| Versionamiento | GitHub, ramas por funcionalidad y Pull Requests |
 
-Los nombres y la cantidad de funciones **son preliminares**: se podrán fusionar o separar tras concretar contratos y permisos. No deben convertirse automáticamente en llamadas HTTP para cada acción del editor.
+**No se utiliza Laravel ni Railway** en la arquitectura acordada. La clave publicable de Supabase puede estar en el frontend, pero las claves administrativas y secretos de OAuth no.
 
-### Flujo de una solicitud
+## 3. Estado verificado del proyecto
 
-1. React consume las APIs correspondientes (Supabase Auth y Edge Functions).
-2. La función valida identidad cuando corresponda y permisos sobre el recurso.
-3. La función aplica las reglas de negocio y consulta PostgreSQL / Storage.
-4. Los datos se protegen con RLS y/o acceso de servidor de privilegio controlado; ninguna clave secreta de servidor llega al navegador.
+| Componente | Estado | Alcance de la verificación |
+|---|---|---|
+| React/Vite/Tailwind y UI básica | Implementado | Compilación y visualización local |
+| Supabase JS | Implementado | Cliente configurado desde variables de entorno |
+| Google OAuth y sesión persistente | Implementado | Probado en local y en Vercel |
+| `public.profiles` y trigger de alta | Implementado | Probado con cuentas de Google |
+| RLS de perfiles | Implementado | Pruebas de lectura y denegación de cambios indebidos |
+| `profiles-api` | Implementado y desplegado | Consulta autenticada y rechazo sin Authorization |
+| Menú responsive y rutas | Implementado en rama local | Navegación y rutas protegidas probadas en desarrollo |
+| Vercel | Desplegado | Versión de `main` disponible; navegación nueva pendiente de integrar y verificar en producción |
+| Editor de glifos | Pendiente | No hay edición vectorial real todavía |
+| Proyectos tipográficos | Pendiente | No hay persistencia ni `projects-api` implementados |
+| Catálogo, publicaciones y compras | Pendiente | Rutas provisionales, sin lógica de negocio |
+| Exportación TTF | Pendiente de validación técnica | No se ha producido ni instalado una fuente generada por el editor |
 
-**Seguridad fundamental:** la clave pública de Supabase puede estar en el frontend con RLS correctamente configuradas; nunca exponer una clave `service_role` o secret de servidor. Las adquisiciones deben confirmarse desde un webhook validado, no por una afirmación del navegador. Las descargas de pago deben requerir verificación de derechos.
+Una página provisional no significa que el módulo correspondiente esté terminado.
 
-## 4. Alcance inicial acordado
-
-### Esencial
-
-1. Identidad, perfiles y roles: visitante, usuario, moderador y administrador.
-2. Editor de glifos vectoriales básico: crear/modificar caracteres, líneas, curvas y puntos; dimensiones y espaciado; previsualización.
-3. Proyectos privados: crear, guardar, recuperar, editar y eliminar; exportación de fuente TTF válida (factibilidad técnica por probar).
-4. Consulta básica de caracteres incluidos y faltantes; metadatos declarados por los publicadores.
-5. Catálogo público, filtros y búsqueda; publicación de TTF, OTF y ZIP bajo validación de tipo/tamaño/estructura.
-6. Licencias, descargas gratuitas y descargas de pago autorizadas.
-7. Adquisiciones con proveedor de pagos **en modo de pruebas**, historial de compras/ventas.
-8. Reportes, suspensión y restauración moderada; notificaciones.
-9. API documentada y autorización/RLS.
-
-**Publicación:** tras validaciones automáticas, una fuente puede aparecer directamente en catálogo; moderación posterior por reportes o incumplimientos. La plataforma no garantiza que un autor posea todos los derechos sobre un archivo.
-
-### Complementario / no comprometido para la primera entrega
-
-- **Primera mejora si queda tiempo:** generador de CSS para uso autorizado de fuentes.
-- **Después:** importación y modificación de fuentes existentes, solo si su licencia lo permite.
-- **Posteriormente:** laboratorio de comparación tipográfica y colaboración entre usuarios.
-- Fuera del alcance inicial: IA, fuentes variables, edición profesional completa, aplicaciones móviles nativas, edición colaborativa en tiempo real y procesamiento bancario propio.
-
-## 5. Orden de implementación acordado
-
-| Orden | Entrega objetivo |
-|---|---|
-| 1 | Entorno de trabajo, estructura y autenticación; gestor de proyectos; editor básico; guardado y exportación TTF |
-| 2 | Catálogo, publicación, metadatos, validación de archivos, licencias y descargas |
-| 3 | Compras de prueba, ventas, reportes, moderación y notificaciones |
-| 4 (opcional) | Generador CSS |
-| 5 (futuro) | Importación/edición de fuentes, laboratorio y colaboración |
-
-Se priorizará entregar funcionalidades completas y comprobables, no solo pantallas estáticas. La exportación TTF debe validarse con una prueba de concepto temprana por su riesgo técnico.
-
-## 6. Estructura del repositorio (estado actual confirmado)
+## 4. Archivos y responsabilidades actuales
 
 ```text
 FontHub/
-├── .gitignore                 # Exclusiones de la raíz
-├── README.md                  # Presentación del proyecto
-├── frontend/                  # React + Vite + Tailwind
-│   ├── .gitignore             # Generado por Vite
+├── README.md
+├── docs/
+│   ├── FONTHUB_DECISIONES_Y_AVANCE.md
+│   └── PRUEBAS_AUTH_RLS.md
+├── frontend/
+│   ├── .env.example
+│   ├── vercel.json
 │   └── src/
-│       ├── assets/
-│       ├── components/
-│       │   ├── layout/
-│       │   └── ui/            # Button.jsx, Card.jsx, Input.jsx
-│       ├── context/
-│       ├── features/
-│       │   ├── auth/
-│       │   ├── catalog/
-│       │   ├── editor/
-│       │   ├── licenses/
-│       │   ├── moderation/
-│       │   ├── projects/
-│       │   └── purchases/
-│       ├── hooks/
-│       ├── pages/
-│       ├── routes/
-│       ├── services/
-│       └── styles/            # theme.css
-└── docs/                     # Añadir esta bitácora
+│       ├── App.jsx                        # Rutas, sesión y layout general
+│       ├── main.jsx                       # BrowserRouter
+│       ├── components/layout/Header.jsx   # Navegación responsive
+│       ├── components/ui/                 # Button, Card, Input, pressableStyles
+│       ├── features/auth/authService.js   # Iniciar/cerrar sesión, obtener usuario
+│       ├── pages/                         # HomePage, LoginPage, PlaceholderPage
+│       ├── routes/ProtectedRoute.jsx
+│       └── services/                      # supabaseClient, profilesService
+└── supabase/
+    ├── functions/profiles-api/index.ts
+    └── migrations/
+        ├── 20261113_001_create_profiles.sql
+        └── 20261113_002_auto_create_profiles.sql
 ```
 
-Las carpetas vacías no son rastreadas por Git. `supabase/` **no se ha inicializado todavía**: se creará con Supabase CLI. En el frontend existe una pantalla de demostración visual, sin navegación ni backend funcional. El diseño es **cómic moderno/neobrutalista y responsive**; se mantiene separado de la arquitectura y reglas de negocio.
+Los directorios `features/editor`, `features/catalog`, `features/projects`, etc. pueden estar reservados aunque estén vacíos. No deben describirse como módulos terminados.
 
-## 7. Decisiones pendientes
+### Servicios existentes
 
-- Nombre definitivo de la aplicación (nombre de repositorio confirmado: `fonthub`).
-- Completar el monorepo existente (`frontend/`) con `supabase/` y documentación técnica.
-- Conjunto de glifos mínimo y alcance real de edición/exportación TTF.
-- Modelo relacional, políticas RLS, roles y reglas de visibilidad.
-- Contratos definitivos de las Edge Functions, validación y límites de archivos ZIP.
-- Proveedor de pagos de prueba y política de adquisición de licencias.
-- Cronograma académico, responsables y criterios de aceptación.
-- Límites de costos y cuotas de Supabase/Vercel.
+- **Auth:** operaciones de sesión a través de `authService.js` y Supabase Auth.
+- **Perfiles:** `profilesService.js` invoca la Edge Function `profiles-api`; devuelve los campos `id`, `name`, `role` y `created_at` del usuario autorizado.
+- **PostgreSQL:** `profiles` tiene RLS; el trigger crea perfiles de nuevos usuarios.
 
-## 8. Bitácora
+La interfaz temporal para probar perfiles ya fue sustituida por la navegación general; el servicio permanece disponible.
 
-| Fecha | Estado | Acuerdo / avance |
-|---|---|---|
-| 2026-11-10 | Decidido | React + Vite + Tailwind; Supabase Auth/PostgreSQL/Storage/Edge Functions; Vercel. No Laravel ni Railway inicialmente. |
-| 2026-11-10 | Decidido | El profesor acepta módulos con APIs para arquitectura basada en servicios. |
-| 2026-11-10 | Verificado | Windows: Node v26.13.0, npm 12.2.0, Git 2.47.1; Linux: Node v24.21.0, npm 12.2.0, Git 2.53.0. |
-| 2026-11-10 | Verificado | Git inicializado en `main`, `origin` configurado a https://github.com/P4quiton/fonthub.git. |
-| 2026-11-10 | Verificado | React + Vite v8.3.7 inicializado en `frontend/`; Tailwind instalado e integrado; `npm run build` tuvo éxito (20 módulos, 265 ms). |
-| 2026-11-10 | Verificado | `npm run lint` sin errores. `npm audit --omit=dev` sin vulnerabilidades detectadas; la auditoría completa reportó cuatro moderadas ligadas a `minimatch`/ESLint. No ejecutar `npm audit fix --force` sin revisar. |
-| 2026-11-10 | Verificado visualmente | Se confirmó Tailwind y componentes `Button`, `Card`, `Input`, pantalla demostrativa cómic y estructura `features/`. Se solicitó diseño responsive; faltan pruebas sistemáticas a 320/375/768 px. |
-| 2026-11-10 | Confirmado | `.gitignore` en raíz y otro en `frontend/`; se creó `README.md`. |
-| 2026-11-10 | Último estado Git reportado | Rama `main`, aún **sin commits**; sin seguimiento: `.gitignore`, `README.md`, `frontend/`. |
+### Servicios planeados, no implementados
 
-## 9. Próxima acción: documentación y primer commit
+`projects-api`, `fonts-api`, `licenses-api`, `purchases-api`, `payments-webhook`, `downloads-api`, `moderation-api` y `notifications-api`. Sus nombres y límites podrán ajustarse al definir contratos; no debe hacerse una petición HTTP por cada movimiento de un nodo en el editor.
 
-1. Copiar este archivo a `docs/FONTHUB_DECISIONES_Y_AVANCE.md` dentro de la carpeta local.
-2. Revisar `git status --short --untracked-files=all` y `git check-ignore` para asegurar que no se preparen dependencias, compilaciones ni secretos.
-3. Verificar que el remoto no tenga commits ajenos antes de hacer push (`git ls-remote --heads origin`).
-4. Preparar con `git add .gitignore README.md frontend docs/FONTHUB_DECISIONES_Y_AVANCE.md`, inspeccionar `git diff --cached --name-only` y `git diff --cached --stat`.
-5. Crear el primer commit y subir `main` después de validar los archivos.
+## 5. Seguridad y límites conocidos
 
-**Nota para el equipo:** actualizar esta bitácora con los cambios efectivos; distinguir acuerdos, propuestas y funcionalidades realmente probadas.
+- El cliente utiliza una **Publishable Key**, no una clave de privilegios administrativos.
+- No debe subirse `frontend/.env.local` al repositorio ni empaquetarse en ZIP compartidos, aunque sus variables actuales sean publicables.
+- La navegación protegida impide abrir ciertas pantallas sin sesión; **no** constituye por sí sola autorización de datos.
+- RLS y permisos de SQL limitan operaciones sobre `profiles`, según las pruebas documentadas.
+- La llamada autenticada a `profiles-api` devolvió el perfil; una petición sin `Authorization` devolvió `401 UNAUTHORIZED_NO_AUTH_HEADER`.
+- La autenticación se mantiene en el navegador mediante el mecanismo de persistencia configurado en Supabase JS; proteger la aplicación contra XSS sigue siendo importante.
+- Las pruebas realizadas **no** equivalen a auditoría de seguridad completa.
+
+**Pendiente de seguridad:** verificar expiración/renovación de sesión, cambios de cuenta, validación de rutas de retorno OAuth, actualizaciones autorizadas de nombre, controles RLS para proyectos y Storage, permisos administrativos y seguridad de futuras compras y descargas.
+
+## 6. Navegación implementada localmente
+
+| Ruta | Tipo | Estado | Responsable |
+|---|---|---|---|
+| `/` | Pública | Inicio | Base común |
+| `/login` | Pública | OAuth | Base común |
+| `/catalogo` | Pública | Provisional | Compañero |
+| `/editor` | Autenticada | Provisional | Editor |
+| `/proyectos` | Autenticada | Provisional | Editor |
+| `/perfil` | Autenticada | Provisional | Base común |
+| `/compras` | Autenticada | Provisional | Compañero |
+
+Archivos: `Header.jsx`, `HomePage.jsx`, `LoginPage.jsx`, `PlaceholderPage.jsx`, `ProtectedRoute.jsx`, `App.jsx`, `main.jsx` y `vercel.json`.
+
+Las interacciones neobrutalistas se usan en `Button.jsx` y `pressableStyles.js`. **Pendiente:** consolidarlas sin duplicación; hacerlo no exige cambiar el sistema de autenticación.
+
+## 7. Trabajo en paralelo
+
+### Editor y proyectos tipográficos
+
+Responsabilidades: modelo de glifos, edición de contornos y nodos, geometría, métricas, previsualización, guardado de proyectos y exportación de fuente. Los proyectos de un usuario deberán mantenerse privados por defecto.
+
+### Catálogo y demás módulos
+
+Responsabilidades: publicaciones, archivos descargables, metadatos, búsqueda, licencias, ventas, descargas autorizadas y moderación.
+
+### Contrato de integración por definir
+
+El editor deberá entregar a publicaciones un archivo tipográfico validado y metadatos claros: identificador del proyecto/propietario, nombre de la familia, estilo, versión, formato real, caracteres soportados y licencia al publicarse. El catálogo **no** debe depender del estado interno del lienzo de dibujo.
+
+La infraestructura común (`supabaseClient`, sesión, layout, componentes UI) se comparte; cada módulo mantiene su lógica y servicios propios.
+
+## 8. Próximas acciones ordenadas
+
+1. Integrar la navegación compartida mediante Pull Request a `main` y verificar Vercel.
+2. Confirmar flujo OAuth hacia `/editor` cuando el usuario empieza sin sesión.
+3. Abrir una rama dedicada al editor y realizar la prueba de concepto de generación de fuente instalable.
+4. Definir modelo de glifos y de proyectos, y documentar el contrato con publicaciones.
+5. Implementar el editor vectorial y previsualización.
+6. Incorporar persistencia segura de proyectos mediante SQL/RLS y servicios.
+7. Implementar/exportar el formato tipográfico que supere la prueba técnica.
+
+## 9. Bitácora resumida
+
+| Fecha | Hito |
+|---|---|
+| 2026-11-10 | Inicialización React + Vite + Tailwind, estructura y primer diseño cómic |
+| 2026-11-13 a 2026-11-15 | Configuración Supabase Auth, perfiles, trigger, migraciones, RLS y Edge Function `profiles-api` |
+| 2026-11-15 | Google OAuth y persistencia probados en el despliegue de Vercel |
+| 2026-11-15 | `profiles-api` probada con petición autenticada y petición anónima rechazada con HTTP 401 |
+| 2026-11-15 | Navegación con React Router, menú responsive, páginas provisionales y animaciones probadas localmente |
+
+**Regla de actualización:** al cerrar un Pull Request, cambiar el estado del componente correspondiente y registrar pruebas realmente ejecutadas. Evitar pegar instrucciones temporales de la conversación dentro de esta bitácora.
