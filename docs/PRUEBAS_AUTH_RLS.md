@@ -61,3 +61,63 @@ Las pruebas realizadas confirmaron que:
 La autenticación con Google y las restricciones de acceso a perfiles funcionaron correctamente en los escenarios evaluados.
 
 Estas pruebas no constituyen una auditoría completa de seguridad. Las políticas y permisos deberán seguir verificándose conforme se incorporen nuevas funcionalidades.
+
+
+## Prueba de integración de profiles-api
+
+Se realizó una prueba de integración entre el frontend React y
+la Edge Function `profiles-api` de Supabase.
+
+### Procedimiento
+
+1. Iniciar sesión mediante Google OAuth.
+2. Ejecutar la función `getMyProfile()` desde React.
+3. Enviar una petición GET mediante `supabase.functions.invoke()`.
+4. Revisar la respuesta desde DevTools, en Network.
+5. Mostrar el nombre y el rol del usuario en la interfaz.
+
+### Resultado
+
+La API devolvió correctamente un objeto `profile` con los campos:
+
+- `id`
+- `name`
+- `role`
+- `created_at`
+
+El usuario autenticado tenía el rol `user`.
+
+El campo `name` estaba vacío, por lo que la interfaz mostró
+el texto "Sin nombre".
+
+La respuesta fue procesada correctamente por React y la
+información se presentó en la interfaz.
+
+### Estado
+
+Prueba de integración autenticada: satisfactoria.
+
+Pendiente: comprobar explícitamente el rechazo de solicitudes
+sin autenticación y realizar las pruebas en producción.
+
+### Evidencia
+
+[Insertar captura de la petición y su respuesta en DevTools]
+
+## Prueba de acceso no autenticado a profiles-api
+
+Se realizó una solicitud GET a la Edge Function `profiles-api`
+sin enviar un encabezado Authorization.
+
+### Resultado
+
+- Código HTTP: 401 Unauthorized.
+- Código de error: UNAUTHORIZED_NO_AUTH_HEADER.
+- Mensaje: Missing authorization header.
+- No se devolvió información del perfil.
+
+### Conclusión
+
+La API rechaza solicitudes sin credenciales de autenticación.
+
+La prueba fue satisfactoria.

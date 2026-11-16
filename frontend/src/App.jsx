@@ -1,3 +1,4 @@
+import { getMyProfile } from './services/profilesService'
 
 import { useEffect, useState } from 'react'
 import Button from './components/ui/Button'
@@ -13,6 +14,10 @@ function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  //Prueba
+  const [profile, setProfile] = useState(null)
+  const [profileLoading, setProfileLoading] = useState(false)
+  //Prueba
 
   useEffect(() => {
     let active = true
@@ -54,6 +59,7 @@ function App() {
   }
 
   async function handleLogout() {
+    setProfile(null)
     try {
       setError('')
       await signOut()
@@ -62,6 +68,24 @@ function App() {
       setError(err.message)
     }
   }
+
+  //Prueba
+  async function handleGetProfile() {
+  try {
+    setError('')
+    setProfile(null)
+    setProfileLoading(true)
+
+    const result = await getMyProfile()
+    setProfile(result)
+  } catch (err) {
+    console.error('Error en profiles-api:', err)
+    setError('No se pudo consultar el perfil mediante la API')
+  } finally {
+    setProfileLoading(false)
+  }
+}
+  //Prueba
 
   return (
     <main className="flex min-h-screen items-center justify-center px-5 py-12">
@@ -95,6 +119,115 @@ function App() {
                 >
                   Cerrar sesión
                 </Button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div className="mt-5 space-y-4">
+  <Button
+    className="w-full"
+    onClick={handleGetProfile}
+    disabled={profileLoading}
+  >
+    {profileLoading ? 'Consultando...' : 'Consultar mi perfil (API)'}
+  </Button>
+
+  {profile && (
+    <div className="rounded-lg border-2 border-black bg-yellow-100 p-4 text-left">
+      <p>
+        <strong>Nombre:</strong> {profile.name || 'Sin nombre'}
+      </p>
+      <p>
+        <strong>Rol:</strong> {profile.role}
+      </p>
+    </div>
+  )}
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               </div>
             ) : (
               <Button
