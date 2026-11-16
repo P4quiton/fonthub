@@ -1,90 +1,121 @@
-import { useState } from 'react'
+
+import { useEffect, useState } from 'react'
 import Button from './components/ui/Button'
 import Card from './components/ui/Card'
-import Input from './components/ui/Input'
+import {
+  signInWithGoogle,
+  signOut,
+  getCurrentUser,
+} from './features/auth/authService'
+import { supabase } from './services/supabaseClient'
 
 function App() {
-  const [search, setSearch] = useState('')
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    async function loadUser() {
+      try {
+        const currentUser = await getCurrentUser()
+        if (active) setUser(currentUser)
+      } catch (err) {
+        if (active) setError(err.message)
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    loadUser()
+
+    const { data: { subscription } } =
+      supabase.auth.onAuthStateChange((_event, session) => {
+        if (active) {
+          setUser(session?.user ?? null)
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  async function handleGoogleLogin() {
+    try {
+      setError('')
+      await signInWithGoogle()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      setError('')
+      await signOut()
+      setUser(null)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
 
   return (
-    <main className="min-h-screen px-5 py-12 sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-5xl">
-
-        <header className="mb-10 text-center">
-          <h1 className="text-4xl font-black sm:text-5xl lg:text-6xl">
+    <main className="flex min-h-screen items-center justify-center px-5 py-12">
+      <div className="w-full max-w-lg">
+        <Card className="text-center">
+          <h1 className="text-4xl font-black sm:text-5xl">
             FontHub
           </h1>
 
-          <p className="mt-4 text-base font-medium sm:text-lg">
+          <p className="mt-3 font-medium">
             Crea, comparte y descubre tipografías.
           </p>
-        </header>
 
-        <div className="mx-auto mb-10 max-w-xl">
-          <Input
-            id="font-search"
-            label="Buscar tipografías"
-            placeholder="Escribe el nombre de una fuente..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
+          <div className="mt-8">
+            {loading ? (
+              <p>Comprobando sesión...</p>
+            ) : user ? (
+              <div className="space-y-5">
+                <p className="font-bold">
+                  ¡Sesión iniciada!
+                </p>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                <p className="break-all text-sm">
+                  {user.email}
+                </p>
 
-          <Card>
-            <div className="mb-5 flex min-h-28 items-center justify-center rounded-lg bg-yellow-200">
-              <span className="text-5xl font-black">Aa</span>
-            </div>
+                <Button
+                  variant="accent"
+                  className="w-full"
+                  onClick={handleLogout}
+                >
+                  Cerrar sesión
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="secondary"
+                className="w-full"
+                onClick={handleGoogleLogin}
+              >
+                Continuar con Google
+              </Button>
+            )}
+          </div>
 
-            <h2 className="text-xl font-black">Crea tu fuente</h2>
-
-            <p className="my-4 text-sm">
-              Diseña tus propios caracteres utilizando
-              nuestro editor tipográfico.
+          {error && (
+            <p
+              role="alert"
+              className="mt-5 text-sm font-bold text-red-700"
+            >
+              {error}
             </p>
-
-            <Button className="w-full">
-              Crear proyecto
-            </Button>
-          </Card>
-
-          <Card>
-            <div className="mb-5 flex min-h-28 items-center justify-center rounded-lg bg-blue-200">
-              <span className="text-5xl font-black">Bb</span>
-            </div>
-
-            <h2 className="text-xl font-black">Explora fuentes</h2>
-
-            <p className="my-4 text-sm">
-              Descubre tipografías creadas por diseñadores
-              y empresas.
-            </p>
-
-            <Button variant="secondary" className="w-full">
-              Ver catálogo
-            </Button>
-          </Card>
-
-          <Card>
-            <div className="mb-5 flex min-h-28 items-center justify-center rounded-lg bg-red-200">
-              <span className="text-5xl font-black">Cc</span>
-            </div>
-
-            <h2 className="text-xl font-black">Mis proyectos</h2>
-
-            <p className="my-4 text-sm">
-              Organiza tus diseños y continúa trabajando
-              en tus tipografías.
-            </p>
-
-            <Button variant="accent" className="w-full">
-              Mis proyectos
-            </Button>
-          </Card>
-
-        </div>
-
+          )}
+        </Card>
       </div>
     </main>
   )
