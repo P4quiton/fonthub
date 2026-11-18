@@ -1,4 +1,4 @@
-
+// frontend/src/pages/HomePage.jsx
 import { Link } from 'react-router'
 import { pressableStyles } from '../components/ui/pressableStyles'
 

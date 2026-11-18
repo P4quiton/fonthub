@@ -36,3 +36,9 @@ supabase/.temp/
 
 # Archivos generados por TypeScript
 *.tsbuildinfo
+
+# Vercel
+.vercel
+
+# ESLint
+.eslintcache

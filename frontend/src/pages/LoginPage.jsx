@@ -1,4 +1,4 @@
-
+// frontend/src/pages/LoginPage.jsx
 import { Navigate, useLocation } from 'react-router'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
