@@ -1,4 +1,4 @@
-// frontend/src/routes/ProtectedRoute.jsx
+
 import { Navigate, Outlet, useLocation } from 'react-router'
 
 function ProtectedRoute({ user, loading }) {

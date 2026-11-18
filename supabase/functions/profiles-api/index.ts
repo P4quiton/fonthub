@@ -1,4 +1,4 @@
-// supabase/functions/profiles-api/index.ts
+
 import { withSupabase } from 'npm:@supabase/server@1'
 
 export default {

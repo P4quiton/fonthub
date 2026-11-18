@@ -1,4 +1,4 @@
-// frontend/src/features/auth/authService.js
+
 import { supabase } from '../../services/supabaseClient'
 
 export async function signInWithGoogle(destination = '/') {

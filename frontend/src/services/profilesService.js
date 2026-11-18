@@ -1,4 +1,4 @@
-// frontend/src/services/profilesService.js
+
 import { supabase } from './supabaseClient'
 
 export async function getMyProfile() {

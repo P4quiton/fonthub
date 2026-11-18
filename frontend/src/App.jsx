@@ -1,4 +1,4 @@
-// frontend/src/App.jsx
+
 import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router'
 
