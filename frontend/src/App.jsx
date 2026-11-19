@@ -7,6 +7,7 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import ProtectedRoute from './routes/ProtectedRoute'
+import ProfilePage from './pages/ProfilePage'
 
 import {
   getCurrentUser,
@@ -146,10 +147,7 @@ function App() {
             <Route
               path="/perfil"
               element={
-                <PlaceholderPage
-                  title="Mi perfil"
-                  description="Aquí podrás consultar y administrar tu información."
-                />
+                <ProfilePage />
               }
             />
 

@@ -1,3 +1,4 @@
+
 import { supabase } from '../../services/supabaseClient'
 
 export async function signInWithGoogle(destination = '/') {
