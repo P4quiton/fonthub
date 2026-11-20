@@ -1,7 +1,10 @@
 import { supabase } from './supabaseClient'
 
-export async function getCatalog() {
-  const { data, error } = await supabase.functions.invoke('catalog-api', {
+export async function getCatalog(searchTerm = '') {
+  // Si hay término, lo agregamos a la URL
+  const url = searchTerm ? `catalog-api?search=${encodeURIComponent(searchTerm)}` : 'catalog-api'
+
+  const { data, error } = await supabase.functions.invoke(url, {
     method: 'GET',
   })
 
