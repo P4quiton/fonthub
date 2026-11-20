@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage'
 import PlaceholderPage from './pages/PlaceholderPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 import ProfilePage from './pages/ProfilePage'
+import CatalogPage from './pages/CatalogPage'
 
 import {
   getCurrentUser,
@@ -108,15 +109,7 @@ function App() {
             }
           />
 
-          <Route
-            path="/catalogo"
-            element={
-              <PlaceholderPage
-                title="Explorar fuentes"
-                description="Aquí encontrarás el catálogo de tipografías de FontHub."
-              />
-            }
-          />
+          <Route path="/catalogo" element={<CatalogPage />} />
 
           {/* Páginas que requieren autenticación */}
           <Route
