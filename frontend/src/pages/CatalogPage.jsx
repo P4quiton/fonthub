@@ -12,11 +12,12 @@ function CatalogPage() {
   useEffect(() => {
     async function loadFonts() {
       setLoading(true)
+      setError('')
+
       try {
-        // Ahora le pasamos el término de búsqueda a la API
         const data = await getCatalog(searchTerm)
         setFonts(data)
-      } catch (err) {
+      } catch {
         setError('No se pudo cargar el catálogo.')
       } finally {
         setLoading(false)
