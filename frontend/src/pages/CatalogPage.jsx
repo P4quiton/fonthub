@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getCatalog } from '../services/catalogService'
 import Card from '../components/ui/Card'
+import { Link } from 'react-router'
 
 function CatalogPage() {
   const [fonts, setFonts] = useState([])
@@ -57,17 +58,23 @@ function CatalogPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-3">
           {fonts.map((font) => (
-            <Card key={font.id}>
-              <h2 className="text-2xl font-black">{font.name}</h2>
-              <p className="mt-2 text-sm font-bold text-gray-600">Por: {font.profiles?.name || 'Anónimo'}</p>
-              <p className="mt-2">{font.description}</p>
-              <div className="mt-4 flex justify-between items-center">
-                <span className="bg-yellow-300 px-3 py-1 font-bold border-2 border-black rounded">
-                  {font.price > 0 ? `$${font.price}` : 'Gratis'}
-                </span>
-              </div>
-            </Card>
-          ))}
+            <Link 
+                to={`/catalogo/${font.id}`} 
+                key={font.id} 
+                className="block hover:-translate-y-1 hover:shadow-[6px_6px_0_#000] transition-all duration-200"
+            >
+                <Card>
+                <h2 className="text-2xl font-black">{font.name}</h2>
+                <p className="mt-2 text-sm font-bold text-gray-600">Por: {font.profiles?.name || 'Anónimo'}</p>
+                <p className="mt-2">{font.description}</p>
+                <div className="mt-4 flex justify-between items-center">
+                    <span className="bg-yellow-300 px-3 py-1 font-bold border-2 border-black rounded">
+                    {font.price > 0 ? `$${font.price}` : 'Gratis'}
+                    </span>
+                </div>
+                </Card>
+            </Link>
+            ))}
         </div>
       )}
     </main>

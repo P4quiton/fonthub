@@ -25,6 +25,10 @@ Deno.serve(async (req) => {
   const url = new URL(req.url)
   const searchTerm = url.searchParams.get('search') || ''
 
+  // Obtiene la ID de una fuente específica en caso de previsualizaciones
+  const fontId = url.searchParams.get('id') || '' 
+
+
   // 4. Crear el cliente de Supabase usando las variables de entorno
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
   
@@ -47,7 +51,10 @@ Deno.serve(async (req) => {
     .eq('status', 'published')
 
   // 6. Si el usuario escribió algo en el buscador, filtramos por nombre
-  if (searchTerm) {
+  //Si piden un ID específico, filtramos por él
+  if (fontId) {
+    query = query.eq('id', fontId)
+  } else if (searchTerm) { // Si no hay ID, aplicamos la búsqueda por nombre normal
     // ilike ignora mayúsculas y minúsculas, y los % buscan coincidencias parciales
     query = query.ilike('name', `%${searchTerm}%`)
   }

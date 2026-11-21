@@ -9,6 +9,7 @@ import PlaceholderPage from './pages/PlaceholderPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 import ProfilePage from './pages/ProfilePage'
 import CatalogPage from './pages/CatalogPage'
+import FontDetailPage from './pages/FontDetailPage'
 
 import {
   getCurrentUser,
@@ -109,7 +110,11 @@ function App() {
             }
           />
 
+          {/* Ruta para ver todo el catpalogo*/}
           <Route path="/catalogo" element={<CatalogPage />} />
+
+          {/* Ruta para ver solo una fuente del catálogo, es decir, para ver sus detalles*/}
+          <Route path="/catalogo/:id" element={<FontDetailPage />} />
 
           {/* Páginas que requieren autenticación */}
           <Route
