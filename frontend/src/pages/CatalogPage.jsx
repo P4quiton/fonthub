@@ -6,11 +6,14 @@ function CatalogPage() {
   const [fonts, setFonts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [searchTerm, setSearchTerm] = useState('') // El estado del buscador
 
   useEffect(() => {
     async function loadFonts() {
+      setLoading(true)
       try {
-        const data = await getCatalog()
+        // Ahora le pasamos el término de búsqueda a la API
+        const data = await getCatalog(searchTerm)
         setFonts(data)
       } catch (err) {
         setError('No se pudo cargar el catálogo.')
@@ -18,18 +21,39 @@ function CatalogPage() {
         setLoading(false)
       }
     }
-    loadFonts()
-  }, [])
 
-  if (loading) return <p className="text-center mt-10 font-bold">Cargando catálogo...</p>
-  if (error) return <p className="text-center mt-10 text-red-600 font-bold">{error}</p>
+    // El setTimeout evita buscar con cada tecla presionada (Debounce)
+    const timeoutId = setTimeout(() => {
+      loadFonts()
+    }, 300)
+
+    // Si el usuario vuelve a escribir antes de los 300ms, cancela la búsqueda anterior
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm]) // Se ejecuta cuando searchTerm cambia
 
   return (
     <main className="mx-auto w-full max-w-7xl px-5 py-12">
-      <h1 className="text-4xl font-black mb-8">Explorar Fuentes</h1>
       
-      {fonts.length === 0 ? (
-        <p className="font-medium text-lg">Aún no hay fuentes publicadas.</p>
+      {/* Encabezado y buscador */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <h1 className="text-4xl font-black">Explorar Fuentes</h1>
+        
+        <input 
+          type="text" 
+          placeholder="Buscar por nombre..." 
+          className="border-4 border-black p-3 rounded-xl font-bold focus:outline-none focus:ring-4 focus:ring-yellow-300 w-full md:w-80"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+      
+      {/* Contenido */}
+      {loading ? (
+        <p className="text-center font-bold">Cargando catálogo...</p>
+      ) : error ? (
+        <p className="text-center mt-10 text-red-600 font-bold">{error}</p>
+      ) : fonts.length === 0 ? (
+        <p className="font-medium text-lg">No se encontraron fuentes.</p>
       ) : (
         <div className="grid gap-6 md:grid-cols-3">
           {fonts.map((font) => (
