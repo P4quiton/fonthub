@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router'
 import { getCatalog } from '../services/catalogService'
+import { getDownloadUrl } from '../services/downloadsService'
 import Card from '../components/ui/Card'
+
 
 function FontDetailPage() {
   const { id } = useParams() // Obtiene el ID de la URL
   const [font, setFont] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     async function loadFont() {
@@ -27,6 +30,22 @@ function FontDetailPage() {
     }
     loadFont()
   }, [id])
+
+
+  // --- FUNCIÓN DE DESCARGA ---
+  const handleDownload = async () => {
+    try {
+      setDownloading(true)
+      const url = await getDownloadUrl(font.id)
+      // Abrimos la URL firmada en una nueva pestaña para forzar la descarga
+      window.open(url, '_blank')
+    } catch (err) {
+      alert(err.message) // Muestra error si es de pago o falla
+    } finally {
+      setDownloading(false)
+    }
+  }
+
 
   if (loading) return <p className="text-center mt-10 font-bold">Cargando fuente...</p>
   if (error) return <p className="text-center mt-10 text-red-600 font-bold">{error}</p>
@@ -62,8 +81,14 @@ function FontDetailPage() {
               <h2 className="text-2xl font-bold mb-4">Obtener esta fuente</h2>
               <p className="text-4xl font-black mb-4">{font.price > 0 ? `$${font.price}` : 'Gratis'}</p>
             </div>
-            <button className="w-full bg-blue-500 text-white font-black py-3 rounded-lg border-4 border-black shadow-[4px_4px_0_#000] hover:translate-y-1 hover:shadow-none transition-all">
-              {font.price > 0 ? 'Comprar fuente' : 'Descargar gratis'}
+
+            {/* BOTÓN CON LA FUNCIÓN DE DESCARGA */}
+            <button 
+              onClick={handleDownload}
+              disabled={downloading}
+              className="w-full bg-blue-500 text-white font-black py-3 rounded-lg border-4 border-black shadow-[4px_4px_0_#000] hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {downloading ? 'Generando enlace...' : (font.price > 0 ? 'Comprar fuente' : 'Descargar gratis')}
             </button>
           </div>
         </div>
