@@ -10,19 +10,30 @@ function CatalogPage() {
   const [searchTerm, setSearchTerm] = useState('') // El estado del buscador
 
   useEffect(() => {
+    // Bandera para evitar mostrar resultados de búsquedas antiguas (Race Condition)
+    let ignore = false; 
+
     async function loadFonts() {
       setLoading(true)
-      setError('')
-
+      setError('') // (Esto ya te lo trajo el merge de tu compañero)
+      
       try {
         const data = await getCatalog(searchTerm)
-        setFonts(data)
+        // Solo actualizamos si esta es la búsqueda más reciente
+        if (!ignore) {
+          setFonts(data)
+        }
       } catch {
-        setError('No se pudo cargar el catálogo.')
+        if (!ignore) {
+          setError('No se pudo cargar el catálogo.')
+        }
       } finally {
-        setLoading(false)
+        if (!ignore) {
+          setLoading(false)
+        }
       }
     }
+    
 
     // El setTimeout evita buscar con cada tecla presionada (Debounce)
     const timeoutId = setTimeout(() => {
@@ -30,7 +41,10 @@ function CatalogPage() {
     }, 300)
 
     // Si el usuario vuelve a escribir antes de los 300ms, cancela la búsqueda anterior
-    return () => clearTimeout(timeoutId)
+    return () => {
+      ignore = true; // Le dice a la petición anterior que ya fue reemplazada
+      clearTimeout(timeoutId)
+    }
   }, [searchTerm]) // Se ejecuta cuando searchTerm cambia
 
   return (
