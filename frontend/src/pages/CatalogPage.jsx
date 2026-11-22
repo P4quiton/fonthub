@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getCatalog } from '../services/catalogService'
 import Card from '../components/ui/Card'
+import { Link } from 'react-router'
 
 function CatalogPage() {
   const [fonts, setFonts] = useState([])
@@ -9,19 +10,30 @@ function CatalogPage() {
   const [searchTerm, setSearchTerm] = useState('') // El estado del buscador
 
   useEffect(() => {
+    // Bandera para evitar mostrar resultados de búsquedas antiguas (Race Condition)
+    let ignore = false;
+
     async function loadFonts() {
       setLoading(true)
-      setError('')
+      setError('') // (Esto ya te lo trajo el merge de tu compañero)
 
       try {
         const data = await getCatalog(searchTerm)
-        setFonts(data)
+        // Solo actualizamos si esta es la búsqueda más reciente
+        if (!ignore) {
+          setFonts(data)
+        }
       } catch {
-        setError('No se pudo cargar el catálogo.')
+        if (!ignore) {
+          setError('No se pudo cargar el catálogo.')
+        }
       } finally {
-        setLoading(false)
+        if (!ignore) {
+          setLoading(false)
+        }
       }
     }
+
 
     // El setTimeout evita buscar con cada tecla presionada (Debounce)
     const timeoutId = setTimeout(() => {
@@ -29,25 +41,28 @@ function CatalogPage() {
     }, 300)
 
     // Si el usuario vuelve a escribir antes de los 300ms, cancela la búsqueda anterior
-    return () => clearTimeout(timeoutId)
+    return () => {
+      ignore = true; // Le dice a la petición anterior que ya fue reemplazada
+      clearTimeout(timeoutId)
+    }
   }, [searchTerm]) // Se ejecuta cuando searchTerm cambia
 
   return (
     <main className="mx-auto w-full max-w-7xl px-5 py-12">
-      
+
       {/* Encabezado y buscador */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <h1 className="text-4xl font-black">Explorar Fuentes</h1>
-        
-        <input 
-          type="text" 
-          placeholder="Buscar por nombre..." 
+
+        <input
+          type="text"
+          placeholder="Buscar por nombre..."
           className="border-4 border-black p-3 rounded-xl font-bold focus:outline-none focus:ring-4 focus:ring-yellow-300 w-full md:w-80"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
-      
+
       {/* Contenido */}
       {loading ? (
         <p className="text-center font-bold">Cargando catálogo...</p>
@@ -58,17 +73,23 @@ function CatalogPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-3">
           {fonts.map((font) => (
-            <Card key={font.id}>
-              <h2 className="text-2xl font-black">{font.name}</h2>
-              <p className="mt-2 text-sm font-bold text-gray-600">Por: {font.profiles?.name || 'Anónimo'}</p>
-              <p className="mt-2">{font.description}</p>
-              <div className="mt-4 flex justify-between items-center">
-                <span className="bg-yellow-300 px-3 py-1 font-bold border-2 border-black rounded">
-                  {font.price > 0 ? `$${font.price}` : 'Gratis'}
-                </span>
-              </div>
-            </Card>
-          ))}
+            <Link
+                to={`/catalogo/${font.id}`}
+                key={font.id}
+                className="block hover:-translate-y-1 hover:shadow-[6px_6px_0_#000] transition-all duration-200"
+            >
+                <Card>
+                <h2 className="text-2xl font-black">{font.name}</h2>
+                <p className="mt-2 text-sm font-bold text-gray-600">Por: {font.profiles?.name || 'Anónimo'}</p>
+                <p className="mt-2">{font.description}</p>
+                <div className="mt-4 flex justify-between items-center">
+                    <span className="bg-yellow-300 px-3 py-1 font-bold border-2 border-black rounded">
+                    {font.price > 0 ? `$${font.price}` : 'Gratis'}
+                    </span>
+                </div>
+                </Card>
+            </Link>
+            ))}
         </div>
       )}
     </main>

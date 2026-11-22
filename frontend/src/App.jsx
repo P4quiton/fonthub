@@ -9,6 +9,7 @@ import PlaceholderPage from './pages/PlaceholderPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 import ProfilePage from './pages/ProfilePage'
 import CatalogPage from './pages/CatalogPage'
+import FontDetailPage from './pages/FontDetailPage'
 import EditorPage from './pages/EditorPage'
 
 import {
@@ -110,14 +111,25 @@ function App() {
             }
           />
 
-          <Route path="/catalogo" element={<CatalogPage />} />
+          {/* Catálogo público */}
+          <Route
+            path="/catalogo"
+            element={<CatalogPage />}
+          />
 
-          {/* Páginas que requieren autenticación */}
+          {/* Detalle de una fuente del catálogo */}
+          <Route
+            path="/catalogo/:id"
+            element={<FontDetailPage />}
+          />
+
+          {/* Páginas privadas */}
           <Route
             element={
               <ProtectedRoute user={user} loading={loading} />
             }
           >
+            {/* Editor tipográfico */}
             <Route
               path="/editor"
               element={<EditorPage />}
@@ -135,9 +147,7 @@ function App() {
 
             <Route
               path="/perfil"
-              element={
-                <ProfilePage />
-              }
+              element={<ProfilePage />}
             />
 
             <Route
@@ -151,7 +161,7 @@ function App() {
             />
           </Route>
 
-          {/* Rutas que no existen */}
+          {/* Ruta inexistente */}
           <Route
             path="*"
             element={
