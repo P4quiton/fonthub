@@ -9,6 +9,7 @@ import PlaceholderPage from './pages/PlaceholderPage'
 import ProtectedRoute from './routes/ProtectedRoute'
 import ProfilePage from './pages/ProfilePage'
 import CatalogPage from './pages/CatalogPage'
+import EditorPage from './pages/EditorPage'
 
 import {
   getCurrentUser,
@@ -119,12 +120,7 @@ function App() {
           >
             <Route
               path="/editor"
-              element={
-                <PlaceholderPage
-                  title="Editor de fuentes"
-                  description="Aquí podrás diseñar tus propios glifos y crear tipografías."
-                />
-              }
+              element={<EditorPage />}
             />
 
             <Route
