@@ -7,6 +7,7 @@ const navigation = [
   { label: 'Inicio', to: '/' },
   { label: 'Explorar fuentes', to: '/catalogo' },
   { label: 'Crear fuente', to: '/editor' },
+  { label: 'Publicar fuente', to: '/publicar' }, 
   { label: 'Mis proyectos', to: '/proyectos' },
 ]
 

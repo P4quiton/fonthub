@@ -10,6 +10,7 @@ import ProtectedRoute from './routes/ProtectedRoute'
 import ProfilePage from './pages/ProfilePage'
 import CatalogPage from './pages/CatalogPage'
 import FontDetailPage from './pages/FontDetailPage'
+import PublishFontPage from './pages/PublishFontPage'
 
 import {
   getCurrentUser,
@@ -131,6 +132,8 @@ function App() {
                 />
               }
             />
+
+            <Route path="/publicar" element={<PublishFontPage />} />
 
             <Route
               path="/proyectos"
