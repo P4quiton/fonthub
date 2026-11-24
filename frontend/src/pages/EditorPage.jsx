@@ -4,12 +4,15 @@ import GlyphCanvas from '../features/editor/components/GlyphCanvas'
 import { pressableStyles } from '../components/ui/pressableStyles'
 import { lineToQuadratic, closeToQuadratic } from '../features/editor/utils/bezierUtils'
 import { moveContourNode } from '../features/editor/utils/moveContourNode'
+import { downloadProjectFont } from '../features/editor/utils/exportFont'
 
 function EditorPage() {
     const [project, setProject] = useState(() => createFontProject())
     const [past, setPast] = useState([])
     const [future, setFuture] = useState([])
     const [selectedUnicode, setSelectedUnicode] = useState(65)
+    const [exportMessage, setExportMessage] = useState('')
+    const [exportError, setExportError] = useState('')
 
     const glyphs = Object.values(project.glyphs)
     const selectedGlyph = project.glyphs[String(selectedUnicode)]
@@ -172,6 +175,28 @@ function EditorPage() {
     }
 
 
+    function handleExportFont() {
+        setExportMessage('')
+        setExportError('')
+
+        try {
+            const { filename } = downloadProjectFont(project)
+
+            setExportMessage(
+                `Descarga iniciada: ${filename}`,
+            )
+        } catch (error) {
+            console.error('Error al exportar la fuente:', error)
+
+            setExportError(
+                error instanceof Error
+                    ? error.message
+                    : 'No se pudo exportar la fuente.',
+            )
+        }
+    }
+
+
     function handleUndo() {
         if (past.length === 0) return
 
@@ -252,10 +277,45 @@ function EditorPage() {
                     ↷ Rehacer contorno
                 </button>
 
+
+                <button
+                    type="button"
+                    onClick={handleExportFont}
+                    className={`
+                        ${pressableStyles}
+                        cursor-pointer rounded-lg border-2 border-black
+                        bg-green-300 px-4 py-2 text-sm font-black
+                        hover:bg-green-400
+                    `}
+                >
+                    ↓ Exportar OTF
+                </button>
+
+
                 <span className="text-sm font-semibold text-slate-600">
                     Historial: {past.length} cambios anteriores
                 </span>
             </div>
+
+
+            {exportMessage && (
+                <p
+                    role="status"
+                    className="mb-5 rounded-lg border-2 border-black bg-green-100 p-3 text-sm font-bold"
+                >
+                    {exportMessage}
+                </p>
+            )}
+
+            {exportError && (
+                <p
+                    role="alert"
+                    className="mb-5 rounded-lg border-2 border-red-700 bg-red-100 p-3 text-sm font-bold text-red-800"
+                >
+                    {exportError}
+                </p>
+            )}
+
 
             <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
                 {/* Área principal */}
