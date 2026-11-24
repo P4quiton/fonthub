@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { createFontProject } from '../features/editor/models/createFontProject'
 import GlyphCanvas from '../features/editor/components/GlyphCanvas'
+import { pressableStyles } from '../components/ui/pressableStyles'
+import { lineToQuadratic, closeToQuadratic } from '../features/editor/utils/bezierUtils'
+import { moveContourNode } from '../features/editor/utils/moveContourNode'
 
 function EditorPage() {
     const [project, setProject] = useState(() => createFontProject())
@@ -36,6 +39,138 @@ function EditorPage() {
         setFuture([])
         setProject(updatedProject)
     }
+
+
+    function handleNodeMove(
+        contourIndex,
+        commandIndex,
+        x,
+        y,
+        pointType = 'anchor',
+    ) {
+        const glyphKey = String(selectedUnicode)
+        const currentGlyph = project.glyphs[glyphKey]
+
+        if (!currentGlyph) return
+
+        const updatedContours = moveContourNode(
+            currentGlyph.contours,
+            contourIndex,
+            commandIndex,
+            x,
+            y,
+            pointType,
+        )
+
+        // No registrar un cambio si nada se modificó.
+        if (updatedContours === currentGlyph.contours) {
+            return
+        }
+
+        const updatedProject = {
+            ...project,
+            updatedAt: new Date().toISOString(),
+            glyphs: {
+                ...project.glyphs,
+                [glyphKey]: {
+                    ...currentGlyph,
+                    contours: updatedContours,
+                },
+            },
+        }
+
+        // Un movimiento terminado = una entrada al historial.
+        setPast((previous) => [
+            ...previous.slice(-49),
+            project,
+        ])
+
+        setFuture([])
+        setProject(updatedProject)
+    }
+
+
+    function handleConvertSegment(contourIndex, commandIndex) {
+        const glyphKey = String(selectedUnicode)
+        const currentGlyph = project.glyphs[glyphKey]
+
+        if (!currentGlyph) return
+
+        const currentContour = currentGlyph.contours[contourIndex]
+        const currentCommand = currentContour?.[commandIndex]
+
+        // Solo convertir segmentos rectos.
+        if (currentCommand?.type !== 'L') return
+
+        const convertedContour = lineToQuadratic(
+            currentContour,
+            commandIndex,
+        )
+
+        if (convertedContour === currentContour) return
+
+        const updatedContours = currentGlyph.contours.map(
+            (contour, index) =>
+                index === contourIndex ? convertedContour : contour,
+        )
+
+        const updatedProject = {
+            ...project,
+            updatedAt: new Date().toISOString(),
+            glyphs: {
+                ...project.glyphs,
+                [glyphKey]: {
+                    ...currentGlyph,
+                    contours: updatedContours,
+                },
+            },
+        }
+
+        // Registrar la conversión en el historial.
+        setPast((previous) => [...previous.slice(-49), project])
+        setFuture([])
+        setProject(updatedProject)
+    }
+
+
+    function handleConvertClosingSegment(contourIndex) {
+        const glyphKey = String(selectedUnicode)
+        const currentGlyph = project.glyphs[glyphKey]
+
+        if (!currentGlyph) return
+
+        const currentContour = currentGlyph.contours[contourIndex]
+
+        if (!currentContour) return
+
+        const convertedContour = closeToQuadratic(currentContour)
+
+        // No registrar cambios si no se realizó la conversión.
+        if (convertedContour === currentContour) return
+
+        const updatedContours = currentGlyph.contours.map(
+            (contour, index) =>
+                index === contourIndex ? convertedContour : contour,
+        )
+
+        const updatedProject = {
+            ...project,
+            updatedAt: new Date().toISOString(),
+            glyphs: {
+                ...project.glyphs,
+                [glyphKey]: {
+                    ...currentGlyph,
+                    contours: updatedContours,
+                },
+            },
+        }
+
+        // Permitir deshacer y rehacer la conversión.
+        setPast((previous) => [...previous.slice(-49), project])
+        setFuture([])
+        setProject(updatedProject)
+    }
+
 
     function handleUndo() {
         if (past.length === 0) return
@@ -85,7 +220,16 @@ function EditorPage() {
                     type="button"
                     onClick={handleUndo}
                     disabled={past.length === 0}
-                    className="rounded-lg border-2 border-black bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_#000] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`
+                        ${pressableStyles}
+                        rounded-lg border-2 border-black bg-white
+                        px-4 py-2 text-sm font-bold
+                        enabled:cursor-pointer
+                        disabled:cursor-not-allowed disabled:opacity-40
+                        disabled:hover:translate-x-0
+                        disabled:hover:translate-y-0
+                        disabled:hover:shadow-[4px_4px_0_#000]
+                    `}
                 >
                     ↶ Deshacer contorno
                 </button>
@@ -94,7 +238,16 @@ function EditorPage() {
                     type="button"
                     onClick={handleRedo}
                     disabled={future.length === 0}
-                    className="rounded-lg border-2 border-black bg-white px-4 py-2 text-sm font-bold shadow-[3px_3px_0_#000] transition-transform hover:translate-x-[1px] hover:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-40"
+                    className={`
+                        ${pressableStyles}
+                        rounded-lg border-2 border-black bg-white
+                        px-4 py-2 text-sm font-bold
+                        enabled:cursor-pointer
+                        disabled:cursor-not-allowed disabled:opacity-40
+                        disabled:hover:translate-x-0
+                        disabled:hover:translate-y-0
+                        disabled:hover:shadow-[4px_4px_0_#000]
+                    `}
                 >
                     ↷ Rehacer contorno
                 </button>
@@ -132,6 +285,7 @@ function EditorPage() {
                                 glyph={selectedGlyph}
                                 metrics={project.metrics}
                                 onContourComplete={handleContourComplete}
+                                onNodeMove={handleNodeMove}
                             />
                         </div>
                     </div>
@@ -160,10 +314,15 @@ function EditorPage() {
                                     type="button"
                                     onClick={() => setSelectedUnicode(glyph.unicode)}
                                     aria-pressed={selectedUnicode === glyph.unicode}
-                                    className={`rounded-lg border-2 border-black p-3 font-black transition-colors ${selectedUnicode === glyph.unicode
-                                        ? 'bg-yellow-300'
-                                        : 'bg-white hover:bg-yellow-100'
-                                        }`}
+                                    className={`
+                                        ${pressableStyles}
+                                        cursor-pointer rounded-lg border-2 border-black
+                                        p-3 font-black
+                                        ${selectedUnicode === glyph.unicode
+                                            ? 'bg-yellow-300'
+                                            : 'bg-white hover:bg-yellow-100'
+                                        }
+                                    `}
                                 >
                                     {glyph.unicode === 32 ? '␣' : glyph.name}
                                 </button>
@@ -207,6 +366,114 @@ function EditorPage() {
                             </div>
                         </dl>
                     </section>
+
+                    {/* Herramientas para convertir segmentos a curvas */}
+                    <section className="rounded-xl border-4 border-black bg-white p-4 shadow-[5px_5px_0_#000]">
+                        <h2 className="mb-3 text-xl font-black">
+                            Curvas Bézier
+                        </h2>
+
+                        <p className="mb-4 text-sm font-medium text-gray-600">
+                            Convierte un segmento recto en una curva cuadrática.
+                        </p>
+
+                        <div className="flex flex-col gap-3">
+                            {selectedGlyph.contours.flatMap(
+                                (contour, contourIndex) =>
+                                    contour.map((command, commandIndex) => {
+                                        if (command.type !== 'L') return null
+
+                                        return (
+                                            <button
+                                                key={`${contourIndex}-${commandIndex}`}
+                                                type="button"
+                                                onClick={() =>
+                                                    handleConvertSegment(
+                                                        contourIndex,
+                                                        commandIndex,
+                                                    )
+                                                }
+                                                className={`
+                                                    ${pressableStyles}
+                                                    cursor-pointer rounded-lg border-2 border-black
+                                                    bg-purple-100 px-3 py-2 text-sm font-bold
+                                                `}
+                                            >
+                                                Curvar contorno {contourIndex + 1},
+                                                segmento {commandIndex}
+                                            </button>
+                                        )
+                                    }),
+                            )}
+                        </div>
+
+
+                        {/* Conversión del segmento de cierre */}
+                        <div className="mt-3 flex flex-col gap-3">
+                            {selectedGlyph.contours.map((contour, contourIndex) => {
+                                const first = contour[0]
+                                const last = contour.at(-1)
+                                const previous = contour.at(-2)
+
+                                const canCurveClosing =
+                                    first?.type === 'M' &&
+                                    last?.type === 'Z' &&
+                                    previous &&
+                                    ['M', 'L', 'Q', 'C'].includes(previous.type) &&
+                                    (
+                                        previous.x !== first.x ||
+                                        previous.y !== first.y
+                                    )
+
+                                if (!canCurveClosing) return null
+
+                                return (
+                                    <button
+                                        key={`closing-${contourIndex}`}
+                                        type="button"
+                                        onClick={() =>
+                                            handleConvertClosingSegment(contourIndex)
+                                        }
+                                        className={`
+                                            ${pressableStyles}
+                                            cursor-pointer rounded-lg border-2 border-black
+                                            bg-orange-100 px-3 py-2 text-sm font-bold
+                                        `}
+                                    >
+                                        Curvar lado de cierre del contorno {contourIndex + 1}
+                                    </button>
+                                )
+                            })}
+                        </div>
+
+
+                        {selectedGlyph.contours.every((contour) => {
+                            const first = contour[0]
+                            const last = contour.at(-1)
+                            const previous = contour.at(-2)
+
+                            const hasStraightSegment = contour.some(
+                                (command) => command.type === 'L',
+                            )
+
+                            const hasClosingSegment =
+                                first?.type === 'M' &&
+                                last?.type === 'Z' &&
+                                previous &&
+                                ['M', 'L', 'Q', 'C'].includes(previous.type) &&
+                                (
+                                    previous.x !== first.x ||
+                                    previous.y !== first.y
+                                )
+
+                            return !hasStraightSegment && !hasClosingSegment
+                        }) && (
+                                <p className="text-sm font-medium text-gray-500">
+                                    No hay segmentos rectos disponibles.
+                                </p>
+                            )}
+                    </section>
+
                 </aside>
             </div>
         </main>
