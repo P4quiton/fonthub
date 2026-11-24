@@ -18,7 +18,7 @@ function PublishFontPage() {
   // Cargar las licencias de la base de datos para el menú desplegable
   useEffect(() => {
     async function fetchLicenses() {
-        
+
       //Licencias
       const { data } = await supabase.from('licenses').select('id, name')
       if (data && data.length > 0) {
@@ -39,7 +39,7 @@ function PublishFontPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!file) return setError('Por favor, sube un archivo tipográfico (TTF/OTF).')
-    
+
     setLoading(true)
     setError('')
 
@@ -47,7 +47,7 @@ function PublishFontPage() {
       // 1. Subir el archivo a Supabase Storage
       const fileExt = file.name.split('.').pop()
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
-      
+
       const { error: uploadError } = await supabase.storage
         .from('font-files')
         .upload(fileName, file)
@@ -56,7 +56,7 @@ function PublishFontPage() {
 
       // 2. Enviar los metadatos a la Edge Function
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fonts-api`, {
         method: 'POST',
         headers: {
@@ -77,7 +77,7 @@ function PublishFontPage() {
 
       // 3. Redirigir al catálogo si todo sale bien
       navigate('/catalogo')
-      
+
     } catch (err) {
       setError(err.message)
     } finally {
@@ -89,43 +89,43 @@ function PublishFontPage() {
     <main className="mx-auto w-full max-w-2xl px-5 py-12">
       <Card className="p-8">
         <h1 className="text-3xl font-black mb-6">Publicar Nueva Fuente</h1>
-        
+
         {error && <p className="bg-red-200 text-red-800 font-bold p-3 rounded mb-4">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4 font-bold">
           <div>
             <label className="block mb-1">Nombre de la fuente</label>
-            <input required type="text" className="w-full border-2 border-black p-2 rounded" 
-              onChange={e => setFormData({...formData, name: e.target.value})} />
+            <input required type="text" className="w-full border-2 border-black p-2 rounded"
+              onChange={e => setFormData({ ...formData, name: e.target.value })} />
           </div>
 
           <div>
             <label className="block mb-1">Descripción</label>
             <textarea className="w-full border-2 border-black p-2 rounded" rows="3"
-              onChange={e => setFormData({...formData, description: e.target.value})} />
+              onChange={e => setFormData({ ...formData, description: e.target.value })} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block mb-1">Categoría</label>
               <select className="w-full border-2 border-black p-2 rounded"
-                onChange={e => setFormData({...formData, category_id: e.target.value})}>
+                onChange={e => setFormData({ ...formData, category_id: e.target.value })}>
                 {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
                 ))}
               </select>
             </div>
             <div>
               <label className="block mb-1">Precio (0 para gratis)</label>
               <input type="number" min="0" step="0.01" required className="w-full border-2 border-black p-2 rounded"
-                value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} />
+                value={formData.price} onChange={e => setFormData({ ...formData, price: Number(e.target.value) })} />
             </div>
           </div>
 
           <div>
             <label className="block mb-1">Licencia</label>
             <select className="w-full border-2 border-black p-2 rounded" required
-              onChange={e => setFormData({...formData, license_id: e.target.value})}>
+              onChange={e => setFormData({ ...formData, license_id: e.target.value })}>
               {licenses.map(lic => (
                 <option key={lic.id} value={lic.id}>{lic.name}</option>
               ))}
@@ -135,23 +135,22 @@ function PublishFontPage() {
           <div>
             <label className="block mb-1">Etiquetas (separadas por coma)</label>
             <input type="text" placeholder="e.g. elegante, moderna, titulos" className="w-full border-2 border-black p-2 rounded"
-              onChange={e => setFormData({...formData, tags: e.target.value})} />
+              onChange={e => setFormData({ ...formData, tags: e.target.value })} />
           </div>
 
           <div>
             <label className="block mb-1">Archivo de la fuente (.ttf, .otf)</label>
-            <input 
-                required 
-                type="file" 
-                accept=".ttf,.otf" 
-                className={`w-full border-2 border-black p-2 rounded file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-2 file:border-black file:bg-gray-200 file:text-black file:font-bold hover:file:bg-gray-300 cursor-pointer ${
-                    file ? 'text-black' : 'text-gray-500'
+            <input
+              required
+              type="file"
+              accept=".ttf,.otf"
+              className={`w-full border-2 border-black p-2 rounded file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-2 file:border-black file:bg-gray-200 file:text-black file:font-bold hover:file:bg-gray-300 cursor-pointer ${file ? 'text-black' : 'text-gray-500'
                 }`}
-                onChange={e => setFile(e.target.files[0])} 
-                />
+              onChange={e => setFile(e.target.files[0])}
+            />
           </div>
 
-          <button type="submit" disabled={loading} 
+          <button type="submit" disabled={loading}
             className="w-full bg-green-500 text-white font-black py-3 rounded-lg border-4 border-black shadow-[4px_4px_0_#000] hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50 mt-4">
             {loading ? 'Publicando...' : 'Publicar Fuente'}
           </button>

@@ -22,7 +22,7 @@ function FontDetailPage() {
         } else {
           setError('Fuente no encontrada.')
         }
-      } catch (err) {
+      } catch {
         setError('Error al cargar la fuente.')
       } finally {
         setLoading(false)
@@ -56,17 +56,17 @@ function FontDetailPage() {
       <Link to="/catalogo" className="font-bold text-blue-600 hover:underline mb-6 inline-block">
         ← Volver al catálogo
       </Link>
-      
+
       <Card className="p-8">
         <h1 className="text-5xl font-black mb-2">{font.name}</h1>
         <p className="text-lg font-bold text-gray-600 mb-6">Diseñada por: {font.profiles?.name}</p>
-        
+
         <div className="grid md:grid-cols-2 gap-8">
           {/* Columna Izquierda: Info */}
           <div>
             <h2 className="text-2xl font-bold mb-2">Descripción</h2>
             <p className="mb-6">{font.description}</p>
-            
+
             <h2 className="text-2xl font-bold mb-2">Categoría</h2>
             <p className="mb-6 inline-block bg-purple-200 border-2 border-black px-3 py-1 font-bold rounded">{font.category}</p>
 

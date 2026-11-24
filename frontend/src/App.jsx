@@ -10,6 +10,7 @@ import ProtectedRoute from './routes/ProtectedRoute'
 import ProfilePage from './pages/ProfilePage'
 import CatalogPage from './pages/CatalogPage'
 import FontDetailPage from './pages/FontDetailPage'
+import EditorPage from './pages/EditorPage'
 import PublishFontPage from './pages/PublishFontPage'
 
 import {
@@ -111,26 +112,28 @@ function App() {
             }
           />
 
-          {/* Ruta para ver todo el catpalogo*/}
-          <Route path="/catalogo" element={<CatalogPage />} />
+          {/* Catálogo público */}
+          <Route
+            path="/catalogo"
+            element={<CatalogPage />}
+          />
 
-          {/* Ruta para ver solo una fuente del catálogo, es decir, para ver sus detalles*/}
-          <Route path="/catalogo/:id" element={<FontDetailPage />} />
+          {/* Detalle de una fuente del catálogo */}
+          <Route
+            path="/catalogo/:id"
+            element={<FontDetailPage />}
+          />
 
-          {/* Páginas que requieren autenticación */}
+          {/* Páginas privadas */}
           <Route
             element={
               <ProtectedRoute user={user} loading={loading} />
             }
           >
+            {/* Editor tipográfico */}
             <Route
               path="/editor"
-              element={
-                <PlaceholderPage
-                  title="Editor de fuentes"
-                  description="Aquí podrás diseñar tus propios glifos y crear tipografías."
-                />
-              }
+              element={<EditorPage />}
             />
 
             <Route path="/publicar" element={<PublishFontPage />} />
@@ -147,9 +150,7 @@ function App() {
 
             <Route
               path="/perfil"
-              element={
-                <ProfilePage />
-              }
+              element={<ProfilePage />}
             />
 
             <Route
@@ -163,7 +164,7 @@ function App() {
             />
           </Route>
 
-          {/* Rutas que no existen */}
+          {/* Ruta inexistente */}
           <Route
             path="*"
             element={

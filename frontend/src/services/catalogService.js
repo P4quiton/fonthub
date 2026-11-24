@@ -5,16 +5,16 @@ export async function getCatalog(searchTerm = '', fontId = '', category = '', ta
 
   // Construimos la URL base de la Edge Function
   const url = new URL(`${supabaseUrl}/functions/v1/catalog-api`)
-  
+
   // Añadimos los parámetros si existen
   if (searchTerm) url.searchParams.append('search', searchTerm)
   if (fontId) url.searchParams.append('id', fontId)
   if (category) url.searchParams.append('category_id', category)
-    // Si hay etiquetas, las unimos con comas para enviarlas en la URL
+  // Si hay etiquetas, las unimos con comas para enviarlas en la URL
   if (tags.length > 0) {
     url.searchParams.append('tags', tags.join(','))
   }
-    
+
 
   // Hacemos la petición usando fetch (nativo del navegador)
   const response = await fetch(url.toString(), {

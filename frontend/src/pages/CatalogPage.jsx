@@ -46,16 +46,16 @@ function CatalogPage() {
   // EFFECT 3. EFECTO PARA CARGAR LAS FUENTES
   useEffect(() => {
     // Bandera para evitar mostrar resultados de búsquedas antiguas (Race Condition)
-    let ignore = false; 
+    let ignore = false;
 
     async function loadFonts() {
       setLoading(true)
       setError('') // (Esto ya te lo trajo el merge de tu compañero)
-      
+
       try {
         // Convertimos "moderno, elegante" en un arreglo ['moderno', 'elegante']
         const tagsArray = tagSearch.split(',').map(t => t.trim()).filter(t => t !== '')
-        
+
         // Pasamos los 4 parámetros: búsqueda, id (vacío), categoría y etiquetas
         const data = await getCatalog(searchTerm, '', category, tagsArray)
 
@@ -73,9 +73,9 @@ function CatalogPage() {
         }
       }
     }
-    
 
-  // Bloque de setTimeout evita buscar con cada tecla presionada (Debounce)
+
+    // Bloque de setTimeout evita buscar con cada tecla presionada (Debounce)
     const timeoutId = setTimeout(() => {
       loadFonts()
     }, 300)
@@ -89,32 +89,32 @@ function CatalogPage() {
 
 
   // Bloque de la función para agregar etiquetas al hacer clic
-    const handleAddTag = (tagToAdd) => {
+  const handleAddTag = (tagToAdd) => {
     // 1. Separamos lo que el usuario ya había escrito
     const currentTags = tagSearch.split(',').map(t => t.trim()).filter(t => t !== '')
-    
+
     // 2. Si la etiqueta no está ya en la lista, la agregamos
     if (!currentTags.includes(tagToAdd)) {
-      const newTagsString = currentTags.length > 0 
-        ? `${currentTags.join(', ')}, ${tagToAdd}` 
+      const newTagsString = currentTags.length > 0
+        ? `${currentTags.join(', ')}, ${tagToAdd}`
         : tagToAdd
       setTagSearch(newTagsString)
     }
-    
+
     // 3. Cerramos el menú desplegable
     setShowTagDropdown(false)
   }
 
   return (
     <main className="mx-auto w-full max-w-7xl px-5 py-12">
-      
+
       {/* Encabezado y buscador */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <h1 className="text-4xl font-black">Explorar Fuentes</h1>
-        
+
         <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
           {/* Selector de Categoría Dinámico */}
-          <select 
+          <select
             className="border-4 border-black p-3 rounded-xl font-bold focus:outline-none focus:ring-4 focus:ring-yellow-300 w-full md:w-64"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
@@ -128,14 +128,14 @@ function CatalogPage() {
           {/* NUEVO: Input de Etiquetas con botón de Elegir */}
           <div className="relative w-full md:w-80">
             <div className="flex">
-              <input 
-                type="text" 
-                placeholder="Etiquetas (ej. moderno)..." 
+              <input
+                type="text"
+                placeholder="Etiquetas (ej. moderno)..."
                 className="border-4 border-black p-3 rounded-l-xl font-bold focus:outline-none focus:ring-4 focus:ring-yellow-300 w-full border-r-0"
                 value={tagSearch}
                 onChange={(e) => setTagSearch(e.target.value)}
               />
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowTagDropdown(!showTagDropdown)}
                 className="bg-gray-200 border-4 border-black px-4 font-bold rounded-r-xl hover:bg-gray-300 transition-colors"
@@ -166,16 +166,16 @@ function CatalogPage() {
           </div>
 
           {/* Input de búsqueda por nombre */}
-          <input 
-            type="text" 
-            placeholder="Buscar por nombre..." 
+          <input
+            type="text"
+            placeholder="Buscar por nombre..."
             className="border-4 border-black p-3 rounded-xl font-bold focus:outline-none focus:ring-4 focus:ring-yellow-300 w-full md:flex-1"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
-      
+
       {/* Contenido */}
       {loading ? (
         <p className="text-center font-bold">Cargando catálogo...</p>
@@ -186,33 +186,33 @@ function CatalogPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-3">
           {fonts.map((font) => (
-            <Link 
-                to={`/catalogo/${font.id}`} 
-                key={font.id} 
-                className="block hover:-translate-y-1 hover:shadow-[6px_6px_0_#000] transition-all duration-200"
+            <Link
+              to={`/catalogo/${font.id}`}
+              key={font.id}
+              className="block hover:-translate-y-1 hover:shadow-[6px_6px_0_#000] transition-all duration-200"
             >
-                <Card>
-                  <h2 className="text-2xl font-black">{font.name}</h2>
-                  <p className="mt-2 text-sm font-bold text-gray-600">Por: {font.profiles?.name || 'Anónimo'}</p>
-                  <p className="mt-2">{font.description}</p>
-                  
-                  {/* Mostramos las etiquetas si es que tiene */}
-                  {font.tags && font.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {font.tags.map(tag => (
-                        <span key={tag} className="text-xs font-bold bg-gray-200 border border-black px-2 py-1 rounded">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+              <Card>
+                <h2 className="text-2xl font-black">{font.name}</h2>
+                <p className="mt-2 text-sm font-bold text-gray-600">Por: {font.profiles?.name || 'Anónimo'}</p>
+                <p className="mt-2">{font.description}</p>
 
-                  <div className="mt-4 flex justify-between items-center">
-                      <span className="bg-yellow-300 px-3 py-1 font-bold border-2 border-black rounded">
-                      {font.price > 0 ? `$${font.price}` : 'Gratis'}
+                {/* Mostramos las etiquetas si es que tiene */}
+                {font.tags && font.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {font.tags.map(tag => (
+                      <span key={tag} className="text-xs font-bold bg-gray-200 border border-black px-2 py-1 rounded">
+                        {tag}
                       </span>
+                    ))}
                   </div>
-                </Card>
+                )}
+
+                <div className="mt-4 flex justify-between items-center">
+                  <span className="bg-yellow-300 px-3 py-1 font-bold border-2 border-black rounded">
+                    {font.price > 0 ? `$${font.price}` : 'Gratis'}
+                  </span>
+                </div>
+              </Card>
             </Link>
           ))}
         </div>

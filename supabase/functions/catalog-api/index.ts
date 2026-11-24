@@ -27,10 +27,10 @@ Deno.serve(async (req) => {
   const searchTerm = url.searchParams.get('search') || ''
 
   // Obtiene la ID de una fuente específica en caso de previsualizaciones
-  const fontId = url.searchParams.get('id') || '' 
+  const fontId = url.searchParams.get('id') || ''
 
   // Obtiene la categoria de la fuente específica en caso de haberla
-  const categoryId = url.searchParams.get('category_id') || '' 
+  const categoryId = url.searchParams.get('category_id') || ''
 
   // Par los tags, leer el parámetro como un string de etiquetas separadas por comas
   const tagsParam = url.searchParams.get('tags') || ''
@@ -40,13 +40,13 @@ Deno.serve(async (req) => {
 
   // 4. Crear el cliente de Supabase usando las variables de entorno
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-  
+
   // Extraemos la publishable key (con todos los fallbacks de seguridad que agregaste)
-  const supabaseKey = JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') || '{}').default 
-    || Deno.env.get('SUPABASE_PUBLISHABLE_KEY') 
-    || Deno.env.get('SUPABASE_ANON_KEY') 
+  const supabaseKey = JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') || '{}').default
+    || Deno.env.get('SUPABASE_PUBLISHABLE_KEY')
+    || Deno.env.get('SUPABASE_ANON_KEY')
     || ''
-    
+
   const supabaseClient = createClient(supabaseUrl, supabaseKey)
 
 
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
   //Si piden un ID específico, filtramos por él
   if (fontId) query = query.eq('id', fontId)
 
-    // Si hay una categoría seleccionada, filtramos por ella
+  // Si hay una categoría seleccionada, filtramos por ella
   if (categoryId) {
     query = query.eq('category_id', categoryId) // Filtro por ID de categoría
   }

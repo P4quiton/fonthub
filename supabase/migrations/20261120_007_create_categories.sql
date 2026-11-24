@@ -16,7 +16,7 @@ ON public.categories FOR SELECT TO anon, authenticated USING (true);
 GRANT SELECT ON public.categories TO anon, authenticated;
 
 -- 2. Insertar las categorías base
-INSERT INTO public.categories (name) VALUES 
+INSERT INTO public.categories (name) VALUES
 ('Sans Serif'), ('Serif'), ('Display'), ('Script');
 
 -- 3. Modificar la tabla fonts para usar un ID en lugar de texto
