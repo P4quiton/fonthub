@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage'
 import CatalogPage from './pages/CatalogPage'
 import FontDetailPage from './pages/FontDetailPage'
 import EditorPage from './pages/EditorPage'
+import PublishFontPage from './pages/PublishFontPage'
 
 import {
   getCurrentUser,
@@ -134,6 +135,8 @@ function App() {
               path="/editor"
               element={<EditorPage />}
             />
+
+            <Route path="/publicar" element={<PublishFontPage />} />
 
             <Route
               path="/proyectos"

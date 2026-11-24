@@ -56,6 +56,15 @@ function HomePage() {
           >
             Explorar fuentes
           </Link>
+
+          {/* Botón "Publicar" */}
+          <Link
+            to="/publicar"
+            className={`${pressableStyles} rounded-xl border-2 border-black bg-green-400 px-6 py-3 font-black text-black`}
+          >
+            Publicar mi fuente
+          </Link>
+
         </div>
       </section>
 

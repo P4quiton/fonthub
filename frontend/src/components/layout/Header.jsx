@@ -7,6 +7,7 @@ const navigation = [
   { label: 'Inicio', to: '/' },
   { label: 'Explorar fuentes', to: '/catalogo' },
   { label: 'Crear fuente', to: '/editor' },
+  { label: 'Publicar fuente', to: '/publicar' },
   { label: 'Mis proyectos', to: '/proyectos' },
 ]
 
@@ -14,10 +15,9 @@ function Header({ user, onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false)
 
   const linkClass = ({ isActive }) =>
-    `rounded-lg px-3 py-2 text-sm font-bold transition-colors ${
-      isActive
-        ? 'bg-yellow-300 text-black'
-        : 'hover:bg-yellow-100'
+    `rounded-lg px-3 py-2 text-sm font-bold transition-colors ${isActive
+      ? 'bg-yellow-300 text-black'
+      : 'hover:bg-yellow-100'
     }`
 
   function closeMenu() {
