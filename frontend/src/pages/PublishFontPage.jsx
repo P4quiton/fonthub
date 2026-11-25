@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { supabase } from '../services/supabaseClient'
 import Card from '../components/ui/Card'
+import JSZip from 'jszip'
 
 function PublishFontPage() {
   const navigate = useNavigate()
@@ -38,12 +39,34 @@ function PublishFontPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!file) return setError('Por favor, sube un archivo tipográfico (TTF/OTF).')
+    if (!file) return setError('Por favor, sube un archivo tipográfico (TTF/OTF) o un ZIP.')
 
     setLoading(true)
     setError('')
 
     try {
+       // --- VALIDACIÓN DE ARCHIVO ---
+       const fileNameLower = file.name.toLowerCase()
+
+        
+      if (fileNameLower.endsWith('.zip')) {
+        // Si es un ZIP, lo leemos en memoria para revisar su contenido
+        const zip = await JSZip.loadAsync(file)
+        const filesInZip = Object.keys(zip.files)
+        
+        // Verificamos si al menos uno termina en .ttf o .otf
+        const hasFont = filesInZip.some(name => name.toLowerCase().endsWith('.ttf') || name.toLowerCase().endsWith('.otf'))
+        
+        if (!hasFont) {
+          throw new Error('El archivo ZIP debe contener al menos un archivo de fuente (.ttf o .otf).')
+        }
+      } else if (!fileNameLower.endsWith('.ttf') && !fileNameLower.endsWith('.otf')) {
+        // Si no es ZIP ni TTF/OTF, lo rechazamos
+        throw new Error('Formato no válido. Sube un archivo .ttf, .otf o .zip.')
+      }
+      // --- FIN DE VALIDACIÓN DEL ARCHIVO
+
+
       // 1. Subir el archivo a Supabase Storage
       const fileExt = file.name.split('.').pop()
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
@@ -139,14 +162,15 @@ function PublishFontPage() {
           </div>
 
           <div>
-            <label className="block mb-1">Archivo de la fuente (.ttf, .otf)</label>
-            <input
-              required
-              type="file"
-              accept=".ttf,.otf"
-              className={`w-full border-2 border-black p-2 rounded file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-2 file:border-black file:bg-gray-200 file:text-black file:font-bold hover:file:bg-gray-300 cursor-pointer ${file ? 'text-black' : 'text-gray-500'
-                }`}
-              onChange={e => setFile(e.target.files[0])}
+            <label className="block mb-1">Archivo de la fuente (.ttf, .otf o.zip que lo contenga)</label>
+            <input 
+              required 
+              type="file" 
+              accept=".ttf,.otf,.zip" // <-- Agregamos .zip
+              className={`w-full border-2 border-black p-2 rounded file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-2 file:border-black file:bg-gray-200 file:text-black file:font-bold hover:file:bg-gray-300 cursor-pointer ${
+                file ? 'text-black' : 'text-gray-500'
+              }`}
+              onChange={e => setFile(e.target.files[0])} 
             />
           </div>
 
